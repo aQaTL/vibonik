@@ -13,14 +13,35 @@
 			HelloWorld
 		},
 		mounted() {
+			this.loadFacebook(document, 'script', 'facebook-jssdk');
 		},
+
+		data: {
+			fbCredentials: {},
+		},
+
 		methods: {
+
 			facebookLoaded: async function (FB) {
 				console.log("facebook: ", FB);
 				FB.getLoginStatus(function (response) {
+					if (response.status === "connected") {
+						this.fbCredentials = response.authResponse;
+					}
 					console.log("Login response: ", response);
 				});
-			}
+			},
+
+			loadFacebook: function (d, s, id) {
+				let js, fjs = d.getElementsByTagName(s)[0];
+				if (d.getElementById(id)) {
+					return;
+				}
+				js = d.createElement(s);
+				js.id = id;
+				js.src = "https://connect.facebook.net/pl_PL/sdk/debug.js";
+				fjs.parentNode.insertBefore(js, fjs);
+			},
 		}
 	};
 
@@ -36,17 +57,6 @@
 
 		app.methods.facebookLoaded(FB);
 	};
-
-	(function (d, s, id) {
-		var js, fjs = d.getElementsByTagName(s)[0];
-		if (d.getElementById(id)) {
-			return;
-		}
-		js = d.createElement(s);
-		js.id = id;
-		js.src = "https://connect.facebook.net/pl_PL/sdk/debug.js";
-		fjs.parentNode.insertBefore(js, fjs);
-	}(document, 'script', 'facebook-jssdk'));
 
 	export default app;
 </script>
