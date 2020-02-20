@@ -1,7 +1,10 @@
-use actix_web::{web, App, HttpServer, Scope};
-use std::io;
 use actix_cors::Cors;
-use diesel::{r2d2::{self, ConnectionManager}, PgConnection};
+use actix_web::{web, App, HttpServer, Scope};
+use diesel::{
+	r2d2::{self, ConnectionManager},
+	PgConnection,
+};
+use std::io;
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -37,11 +40,8 @@ async fn main() -> io::Result<()> {
 			.service(
 				Scope::new("/api")
 					.data(pool.clone())
-					.wrap(Cors::new()
-						.allowed_origin("http://localhost:8080")
-						.finish()
-					)
-					.route("/echo", web::get().to(api::echo))
+					.wrap(Cors::new().allowed_origin("http://localhost:8080").finish())
+					.route("/echo", web::get().to(api::echo)),
 			)
 			.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
 	});
@@ -64,7 +64,7 @@ pub async fn connect() -> Pool {
 }
 
 mod api {
-	use actix_web::{Responder, web::Query};
+	use actix_web::{web::Query, Responder};
 	use serde::Deserialize;
 
 	#[derive(Deserialize)]
