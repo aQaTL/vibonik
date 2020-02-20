@@ -20,7 +20,7 @@ export default {
   },
   methods: {
     echo: async function() {
-      let url = new URL("http://localhost:80/api/echo");
+      let url = new URL("http://localhost:8081/api/echo");
       url.searchParams.append("msg", this.echoInput);
       let res = await fetch(url, {
         method: "GET",

@@ -1,6 +1,9 @@
 use actix_web::{web, App, HttpServer, Scope};
 use std::io;
 use actix_cors::Cors;
+use diesel::{r2d2::{self, ConnectionManager}, PgConnection};
+
+pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
@@ -10,6 +13,9 @@ async fn main() -> io::Result<()> {
 			dotenv::from_filename(".env_template")
 		})
 		.expect("Failed to load .env");
+
+	println!("Connecting to the database");
+	let pool = connect().await;
 
 	let mut addresses = std::env::vars()
 		.filter(|(key, _)| key.starts_with("ADDRESS"))
@@ -26,10 +32,11 @@ async fn main() -> io::Result<()> {
 		.map(|addr| format!("{}:{}", addr, port))
 		.collect::<Vec<String>>();
 
-	let mut server = HttpServer::new(|| {
+	let mut server = HttpServer::new(move || {
 		App::new()
 			.service(
 				Scope::new("/api")
+					.data(pool.clone())
 					.wrap(Cors::new()
 						.allowed_origin("http://localhost:8080")
 						.finish()
@@ -40,11 +47,20 @@ async fn main() -> io::Result<()> {
 	});
 
 	for addr in bind_addresses {
+		println!("Binding to {}", addr);
 		server = server
 			.bind(&addr)
 			.expect(&format!("failed to bind to {}", addr));
 	}
 	server.run().await
+}
+
+pub async fn connect() -> Pool {
+	let connspec = std::env::var("DATABASE_URL").expect("DATABASE_URL");
+	let manager = ConnectionManager::<PgConnection>::new(connspec);
+	r2d2::Pool::builder()
+		.build(manager)
+		.expect("Failed to create pool.")
 }
 
 mod api {
@@ -57,6 +73,6 @@ mod api {
 	}
 
 	pub async fn echo(Query(params): Query<EchoParams>) -> impl Responder {
-		params.msg.unwrap_or_default().to_string()
+		format!("Echo: {}", params.msg.unwrap_or_default().to_string())
 	}
 }
