@@ -40,7 +40,12 @@ async fn main() -> io::Result<()> {
 			.service(
 				Scope::new("/api")
 					.data(pool.clone())
-					.wrap(Cors::new().allowed_origin("http://localhost:8080").finish())
+					.wrap(
+						Cors::new()
+							.allowed_origin("http://localhost:8080")
+							.allowed_origin("https://localhost:8080")
+							.finish(),
+					)
 					.route("/echo", web::get().to(api::echo)),
 			)
 			.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
