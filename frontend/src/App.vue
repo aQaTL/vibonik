@@ -1,64 +1,99 @@
 <template>
 	<div id="app">
 		<HelloWorld msg="Welcome to Your Vue.js App"/>
+		<div
+				ref="fbLoginButton"
+				class="fb-login-button"
+				data-width=""
+				data-size="large"
+				data-button-type="login_with"
+				data-auto-logout-link="true"
+				data-use-continue-as="false"
+				data-onlogin="document.facebookLoginCallback()"
+		>
+		</div>
 	</div>
 </template>
 
 <script>
 	import HelloWorld from './components/HelloWorld.vue'
 
-	let app = {
+	export default {
 		name: 'App',
 		components: {
 			HelloWorld
 		},
 		mounted() {
-			this.loadFacebook(document, 'script', 'facebook-jssdk');
+			this.loadFacebook();
 		},
 
-		data: {
-			fbCredentials: {},
+		data() {
+			return {
+				FB: null,
+				fbCredentials: {
+					accessToken: "",
+					expiresIn: "",
+					signedRequest: "",
+					userID: "",
+				},
+			};
 		},
 
 		methods: {
+			facebookLogIn: async function () {
+				console.log("facebook: ", this.FB);
 
-			facebookLoaded: async function (FB) {
-				console.log("facebook: ", FB);
-				FB.getLoginStatus(function (response) {
+				this.FB.getLoginStatus((response) => {
+					console.log("calling getLoginStatus");
 					if (response.status === "connected") {
 						this.fbCredentials = response.authResponse;
+						this.facebookLoginSuccessful();
 					}
 					console.log("Login response: ", response);
 				});
 			},
 
-			loadFacebook: function (d, s, id) {
-				let js, fjs = d.getElementsByTagName(s)[0];
-				if (d.getElementById(id)) {
+			facebookLoginSuccessful: function () {
+				this.FB.api("/me", (response) => {
+					console.log("USER INFO: ", response);
+				});
+			},
+
+			facebookLoaded: async function () {
+				this.facebookLogIn();
+			},
+
+			loadFacebook: function () {
+				let js, fjs = document.getElementsByTagName("script")[0];
+				if (document.getElementById("facebook-jssdk") || window.fbAsyncInit !== undefined) {
 					return;
 				}
-				js = d.createElement(s);
-				js.id = id;
+				window.fbAsyncInit = () => {
+					/*eslint no-undef: "off"*/
+					FB.init({
+						appId: "196521161566506",
+						autoLogAppEvents: true,
+						xfbml: true,
+						version: 'v6.0'
+					});
+					FB.AppEvents.logPageView();
+
+					this.FB = FB;
+					this.facebookLoaded();
+				};
+
+				document.facebookLoginCallback = () => {
+					this.facebookLogIn()
+				};
+
+				js = document.createElement("script");
+				js.id = "facebook-jssdk";
+				js.crossOrigin = "anonymous";
 				js.src = "https://connect.facebook.net/pl_PL/sdk/debug.js";
 				fjs.parentNode.insertBefore(js, fjs);
 			},
 		}
-	};
-
-	window.fbAsyncInit = function () {
-		/*eslint no-undef: "off"*/
-		FB.init({
-			appId: "196521161566506",
-			autoLogAppEvents: true,
-			xfbml: false,
-			version: 'v6.0'
-		});
-		FB.AppEvents.logPageView();
-
-		app.methods.facebookLoaded(FB);
-	};
-
-	export default app;
+	}
 </script>
 
 <style>

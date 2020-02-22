@@ -5,23 +5,10 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width,initial-scale=1.0">
 	<link rel="icon" href="<%= BASE_URL %>favicon.ico">
-	<script>
-	  // window.fbAsyncInit = function () {
-	  //   /*eslint no-undef: "off"*/
-	  //   FB.init({
-	  //     appId: "196521161566506",
-	  //     autoLogAppEvents: true,
-	  //     xfbml: false,
-	  //     version: 'v6.0'
-	  //   });
-	  //   FB.AppEvents.logPageView();
-	  //   window.FB = FB;
-	  // };
-	</script>
-	<!--    <script async defer src="https://connect.facebook.net/pl_PL/sdk/debug.js"></script>-->
 	<title><%= htmlWebpackPlugin.options.title %></title>
 </head>
 <body>
+	<div id="fb-root"></div>
 	<noscript>
 		<strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without
 			JavaScript enabled. Please enable it to continue.</strong>

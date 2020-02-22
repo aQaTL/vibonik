@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
 	"build-dev": "vue-cli-service build --mode development",
+	"serve-https": "npm run serve -- --https --public \"localhost:8080\"",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

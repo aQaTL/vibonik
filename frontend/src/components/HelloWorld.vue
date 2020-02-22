@@ -4,7 +4,6 @@
 		<form v-on:submit.prevent="">
 			<input type="text" v-model="echoInput" v-on:keypress.enter="echo">
 		</form>
-		<h2>plz work</h2>
 	</div>
 </template>
 
