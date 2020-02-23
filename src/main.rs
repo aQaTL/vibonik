@@ -5,6 +5,7 @@ use diesel::{
 	r2d2::{self, ConnectionManager},
 	PgConnection,
 };
+use log::*;
 use std::io;
 
 mod fb;
@@ -22,7 +23,7 @@ async fn main() -> io::Result<()> {
 
 	env_logger::init();
 
-	println!("Connecting to the database");
+	info!("Connecting to the database");
 	let pool = connect().await;
 
 	let mut addresses = std::env::vars()
@@ -60,7 +61,7 @@ async fn main() -> io::Result<()> {
 	});
 
 	for addr in bind_addresses {
-		println!("Binding to {}", addr);
+		info!("Binding to {}", addr);
 		server = server
 			.bind(&addr)
 			.expect(&format!("failed to bind to {}", addr));
