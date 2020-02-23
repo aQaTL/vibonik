@@ -10,6 +10,7 @@
 				data-auto-logout-link="true"
 				data-use-continue-as="false"
 				data-onlogin="document.facebookLoginCallback()"
+				data-onlogout="console.log('logging OUT!')"
 		>
 		</div>
 	</div>
@@ -17,6 +18,7 @@
 
 <script>
 	import HelloWorld from './components/HelloWorld.vue'
+	import {API} from "./main";
 
 	export default {
 		name: 'App',
@@ -53,10 +55,23 @@
 				});
 			},
 
-			facebookLoginSuccessful: function () {
+			facebookLoginSuccessful: async function () {
 				this.FB.api("/me", (response) => {
 					console.log("USER INFO: ", response);
 				});
+
+				let resp = await fetch(API + "auth", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(this.fbCredentials),
+				});
+				switch (resp.status) {
+					case 200:
+					case 201:
+					case 500:
+				}
 			},
 
 			facebookLoaded: async function () {

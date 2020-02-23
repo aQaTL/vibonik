@@ -8,7 +8,9 @@
 </template>
 
 <script>
-	export default {
+	import {API} from "../main";
+
+  export default {
 		name: 'HelloWorld',
 		props: {
 			msg: String
@@ -20,7 +22,7 @@
 		},
 		methods: {
 			echo: async function () {
-				let url = new URL("http://localhost:8081/api/echo");
+				let url = new URL(API + "echo");
 				url.searchParams.append("msg", this.echoInput);
 				let res = await fetch(url, {
 					method: "GET",
