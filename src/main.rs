@@ -1,6 +1,7 @@
 use actix_cors::Cors;
+use actix_files::NamedFile;
 use actix_web::middleware::Logger;
-use actix_web::{web, App, HttpServer, Scope};
+use actix_web::{guard, web, App, HttpResponse, HttpServer, Responder, Scope};
 use diesel::{
 	r2d2::{self, ConnectionManager},
 	PgConnection,
@@ -13,9 +14,9 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
+mod db;
 mod fb;
 mod schema;
-mod db;
 
 embed_migrations!();
 
@@ -74,7 +75,21 @@ async fn main() -> Result<(), Error> {
 					.route("/auth", web::post().to(api::auth))
 					.route("/signup", web::post().to(api::signup)),
 			)
-			.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
+			.service(
+				Scope::new("/")
+					.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
+					.default_service(
+						// default to index file
+						web::resource("")
+							.route(web::get().to(index))
+							// all requests that are not `GET`
+							.route(
+								web::route()
+									.guard(guard::Not(guard::Get()))
+									.to(HttpResponse::MethodNotAllowed),
+							),
+					),
+			)
 	});
 
 	for addr in bind_addresses {
@@ -86,6 +101,10 @@ async fn main() -> Result<(), Error> {
 	Ok(server.run().await?)
 }
 
+async fn index() -> Result<impl Responder, actix_web::Error> {
+	Ok(NamedFile::open("frontend/dist/index.html")?)
+}
+
 pub async fn connect() -> Pool {
 	let connspec = std::env::var("DATABASE_URL").expect("DATABASE_URL");
 	let manager = ConnectionManager::<PgConnection>::new(connspec);
@@ -95,14 +114,18 @@ pub async fn connect() -> Pool {
 }
 
 mod api {
-	use crate::{fb, db, Pool};
-	use actix_web::{web::{Json, Query}, HttpResponse, Responder, web};
-	use log::error;
-	use serde::{Deserialize, Serialize};
-	use actix_web::web::Data;
+	use crate::{db, fb, Pool};
 	use actix_web::error::BlockingError;
+	use actix_web::web::Data;
+	use actix_web::{
+		web,
+		web::{Json, Query},
+		HttpResponse, Responder,
+	};
 	use diesel::prelude::*;
 	use diesel::result::Error;
+	use log::error;
+	use serde::{Deserialize, Serialize};
 
 	#[derive(Deserialize)]
 	pub struct EchoParams {
@@ -160,7 +183,8 @@ mod api {
 			users
 				.filter(fb_id.eq(data.user_id))
 				.get_result::<db::User>(&conn)
-		}).await;
+		})
+		.await;
 
 		match db_user {
 			Ok(db_user) => ok_json(AuthStatus::Success(db_user)),
@@ -169,14 +193,12 @@ mod api {
 				//TODO: rely on Result::Error responder for returning errors?
 				error!("failed to fetch user: {}", e);
 				HttpResponse::InternalServerError().body("")
-			},
+			}
 		}
 	}
 
 	#[derive(Deserialize)]
-	pub struct SignupForm {
-
-	}
+	pub struct SignupForm {}
 
 	pub async fn signup(Json(form): Json<SignupForm>, pool: Data<Pool>) -> impl Responder {
 		""
