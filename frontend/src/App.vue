@@ -68,7 +68,15 @@
 					body: JSON.stringify(this.fbCredentials),
 				});
 				switch (resp.status) {
-					case 200:
+					case 200: {
+						let authStatus = await resp.json();
+						switch (authStatus) {
+							default:
+								console.log(`unknown authStatus: ${authStatus}`);
+						}
+						console.log(`AuthStatus: ${authStatus}`);
+						break;
+					}
 					case 201:
 					case 500:
 				}
@@ -112,12 +120,17 @@
 </script>
 
 <style>
+	body {
+		background-color: #FEFBEC;
+		color: #AE9513;
+	}
 	#app {
 		font-family: Avenir, Helvetica, Arial, sans-serif;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		text-align: center;
-		color: #2C3E50;
 		margin-top: 60px;
+
+
 	}
 </style>

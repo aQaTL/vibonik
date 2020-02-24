@@ -37,7 +37,7 @@ enum FbError {
 	General,
 }
 
-pub async fn me(access_token: String) -> Result<Response, Error> {
+pub async fn me(access_token: &str) -> Result<Response, Error> {
 	let url = Url::parse_with_params(concat!(API!(), "/me"), &[("access_token", &access_token)]);
 	let url = match url {
 		Ok(url) => url,

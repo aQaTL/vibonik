@@ -5,26 +5,43 @@ use diesel::{
 	r2d2::{self, ConnectionManager},
 	PgConnection,
 };
+use failure::{Error, Fail};
 use log::*;
-use std::io;
+
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
 
 mod fb;
+mod schema;
+mod db;
+
+embed_migrations!();
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
+#[derive(Fail, Debug)]
+enum AppError {
+	#[fail(display = "failed to load .env: {}", err)]
+	DotEnv { err: dotenv::Error },
+}
+
 #[actix_rt::main]
-async fn main() -> io::Result<()> {
+async fn main() -> Result<(), Error> {
 	dotenv::dotenv()
 		.or_else(|_| {
 			println!(".env not found, using .env_template");
 			dotenv::from_filename(".env_template")
 		})
-		.expect("Failed to load .env");
+		.map_err(|err| AppError::DotEnv { err })?;
 
 	env_logger::init();
 
 	info!("Connecting to the database");
 	let pool = connect().await;
+
+	embedded_migrations::run_with_output(&pool.get().unwrap(), &mut std::io::stdout())?;
 
 	let mut addresses = std::env::vars()
 		.filter(|(key, _)| key.starts_with("ADDRESS"))
@@ -66,7 +83,7 @@ async fn main() -> io::Result<()> {
 			.bind(&addr)
 			.expect(&format!("failed to bind to {}", addr));
 	}
-	server.run().await
+	Ok(server.run().await?)
 }
 
 pub async fn connect() -> Pool {
@@ -78,13 +95,14 @@ pub async fn connect() -> Pool {
 }
 
 mod api {
-	use crate::fb;
-	use actix_web::{
-		web::{Json, Query},
-		HttpResponse, Responder,
-	};
+	use crate::{fb, db, Pool};
+	use actix_web::{web::{Json, Query}, HttpResponse, Responder, web};
 	use log::error;
 	use serde::{Deserialize, Serialize};
+	use actix_web::web::Data;
+	use actix_web::error::BlockingError;
+	use diesel::prelude::*;
+	use diesel::result::Error;
 
 	#[derive(Deserialize)]
 	pub struct EchoParams {
@@ -110,13 +128,13 @@ mod api {
 
 	#[derive(Serialize, Deserialize)]
 	enum AuthStatus {
-		Success,
+		Success(db::User),
 		UserNotFound,
 		Fail,
 	}
 
-	pub async fn auth(Json(data): Json<AuthPayload>) -> impl Responder {
-		let user = match fb::me(data.access_token).await {
+	pub async fn auth(Json(data): Json<AuthPayload>, pool: Data<Pool>) -> impl Responder {
+		let user = match fb::me(&data.access_token).await {
 			Ok(fb::Response::User(user)) => user,
 			Ok(fb::Response::Error { message, code, .. }) => {
 				if code == 190 {
@@ -135,10 +153,36 @@ mod api {
 		if user.id != data.user_id {
 			return HttpResponse::Ok().json(AuthStatus::Fail);
 		}
-		HttpResponse::Ok().json(AuthStatus::Success)
+
+		let db_user = web::block(move || {
+			use crate::schema::users::dsl::*;
+			let conn = pool.get().unwrap();
+			users
+				.filter(fb_id.eq(data.user_id))
+				.get_result::<db::User>(&conn)
+		}).await;
+
+		match db_user {
+			Ok(db_user) => ok_json(AuthStatus::Success(db_user)),
+			Err(BlockingError::Error(Error::NotFound)) => ok_json(AuthStatus::UserNotFound),
+			Err(e) => {
+				//TODO: rely on Result::Error responder for returning errors?
+				error!("failed to fetch user: {}", e);
+				HttpResponse::InternalServerError().body("")
+			},
+		}
 	}
 
-	pub async fn signup() -> impl Responder {
+	#[derive(Deserialize)]
+	pub struct SignupForm {
+
+	}
+
+	pub async fn signup(Json(form): Json<SignupForm>, pool: Data<Pool>) -> impl Responder {
 		""
+	}
+
+	fn ok_json<T: Serialize>(value: T) -> actix_http::Response {
+		HttpResponse::Ok().json(value)
 	}
 }

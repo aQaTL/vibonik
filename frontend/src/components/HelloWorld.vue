@@ -1,6 +1,6 @@
 <template>
 	<div class="hello">
-		<h1>Vibonik</h1>
+		<h1>asdf</h1>
 		<form v-on:submit.prevent="">
 			<input type="text" v-model="echoInput" v-on:keypress.enter="echo">
 		</form>
