@@ -137,15 +137,13 @@ mod api {
 	}
 
 	#[derive(Deserialize)]
+	#[serde(rename_all = "camelCase")]
 	#[allow(dead_code)]
 	pub struct AuthPayload {
 		#[serde(rename = "userID")]
 		user_id: String,
-		#[serde(rename = "accessToken")]
 		access_token: String,
-		#[serde(rename = "expiresIn")]
 		expires_in: u64,
-		#[serde(rename = "signedRequest")]
 		signed_request: String,
 	}
 
@@ -198,10 +196,43 @@ mod api {
 	}
 
 	#[derive(Deserialize)]
-	pub struct SignupForm {}
+	#[serde(rename_all = "camelCase")]
+	pub struct SignupForm {
+		#[serde(rename = "userID")]
+		user_id: String,
+		access_token: String,
+		name: String,
+		food_preferences: Option<String>,
+	}
 
 	pub async fn signup(Json(form): Json<SignupForm>, pool: Data<Pool>) -> impl Responder {
-		""
+		let insert = web::block(move || {
+			let conn = pool.get().unwrap();
+
+			let new_user = db::User {
+				fb_id: form.user_id,
+				access_token: Some(form.access_token),
+				name: form.name,
+				food_preferences: form.food_preferences,
+				role: Some(db::Role::User),
+
+				..Default::default()
+			};
+
+			use crate::schema::users::dsl::users;
+			diesel::insert_into(users).values(&new_user).execute(&conn)
+		})
+		.await;
+
+		match insert {
+			Ok(_rows_affected) => (),
+			Err(err) => {
+				error!("failed to insert user: {}", err);
+				return HttpResponse::InternalServerError().body("");
+			}
+		}
+
+		ok_json("")
 	}
 
 	fn ok_json<T: Serialize>(value: T) -> actix_http::Response {
