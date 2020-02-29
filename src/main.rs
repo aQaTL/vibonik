@@ -75,20 +75,13 @@ async fn main() -> Result<(), Error> {
 					.route("/auth", web::post().to(api::auth))
 					.route("/signup", web::post().to(api::signup)),
 			)
-			.service(
-				Scope::new("/")
-					.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
-					.default_service(
-						// default to index file
-						web::resource("")
-							.route(web::get().to(index))
-							// all requests that are not `GET`
-							.route(
-								web::route()
-									.guard(guard::Not(guard::Get()))
-									.to(HttpResponse::MethodNotAllowed),
-							),
-					),
+			.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
+			.default_service(
+				web::resource("").route(web::get().to(index)).route(
+					web::route()
+						.guard(guard::Not(guard::Get()))
+						.to(HttpResponse::MethodNotAllowed),
+				),
 			)
 	});
 
