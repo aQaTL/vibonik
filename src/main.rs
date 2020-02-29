@@ -60,22 +60,28 @@ async fn main() -> Result<(), Error> {
 		.collect::<Vec<String>>();
 
 	let mut server = HttpServer::new(move || {
-		App::new()
-			.wrap(Logger::new(r#" %a "%r" %s %T"#))
-			.service(
-				Scope::new("/api")
-					.data(pool.clone())
-					.wrap(
-						Cors::new()
-							.allowed_origin("http://localhost:8080")
-							.allowed_origin("https://localhost:8080")
-							.finish(),
-					)
-					.route("/echo", web::get().to(api::echo))
-					.route("/auth", web::post().to(api::auth))
-					.route("/signup", web::post().to(api::signup)),
+		let app = App::new().wrap(Logger::new(r#" %a "%r" %s %T"#));
+
+		let api = Scope::new("/api")
+			.data(pool.clone())
+			.route("/echo", web::get().to(api::echo))
+			.route("/auth", web::post().to(api::auth))
+			.route("/signup", web::post().to(api::signup));
+
+		let app = if cfg!(debug_assertions) {
+			app.service(
+				api.wrap(
+					Cors::new()
+						.allowed_origin("http://localhost:8080")
+						.allowed_origin("https://localhost:8080")
+						.finish(),
+				),
 			)
-			.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
+		} else {
+			app.service(api)
+		};
+
+		app.service(actix_files::Files::new("/", "frontend/dist").index_file("index.html"))
 			.default_service(
 				web::resource("").route(web::get().to(index)).route(
 					web::route()
