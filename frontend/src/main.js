@@ -1,15 +1,29 @@
 import Vue from 'vue'
 import App from './App.vue'
 import VueRouter from 'vue-router'
+import Signup from "./components/Signup";
+import Ticket from "./components/Ticket";
+import Home from "./components/Home";
+
+const Users = () => import(/* webpackChunkName: "adminPanel" */ "./components/Users.vue");
 
 Vue.config.productionTip = false;
 
 export let API = Vue.config.devtools ? "http://localhost:8081/api/" : "/api/";
 
-console.log(Vue.config);
-
 Vue.use(VueRouter);
 
+const router = new VueRouter({
+	mode: "history",
+	routes: [
+		{path: "/", component: Home},
+		{path: "/signup", component: Signup},
+		{path: "/ticket", component: Ticket},
+		{path: "/users", component: Users},
+	]
+});
+
 new Vue({
+	router,
 	render: h => h(App),
 }).$mount('#app');
