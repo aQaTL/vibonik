@@ -19,7 +19,7 @@ const cssloader = {
 	module: {
 		rules: [
 			{
-				test: /\.css$/i,
+				test: /\.(css|scss)$/i,
 				use: ['style-loader', 'css-loader'],
 			},
 		],

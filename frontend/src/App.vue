@@ -160,9 +160,14 @@
 	$magenta: $base0f;
 
 	body {
-		background-color: #FEFBEC;
-		color: #AE9513;
+		background-color: $base00;
+		color: $base05;
 		margin: 0;
+	}
+
+	a {
+		color: $base0a;
+		text-decoration: none;
 	}
 
 	#app {
@@ -178,9 +183,9 @@
 	#top-bar {
 		align-self: stretch;
 		text-align: center;
-		border-bottom: 1px solid $base01;
+		border-bottom: 1px solid $base00;
 		padding: 0.5em;
-		background-color: $base06;
+		background-color: $base01;
 	}
 
 	#navigation-bar {
@@ -192,7 +197,7 @@
 		display: flex;
 
 		justify-content: center;
-		background-color: #E8E4CF;
+		background-color: $base01;
 	}
 
 	#navigation-bar > .nav-link {
