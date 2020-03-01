@@ -13,6 +13,8 @@
 						@click="user.food_preferences = item">{{ item.text }}
 				</div>
 			</div>
+			<div class="paid">Zapłacono: {{ user.paid }}
+			</div>
 			<input type="button" value="Zapisz" @click="save">
 
 		</div>
@@ -21,11 +23,12 @@
 
 <script>
 	export const food_preferences = [
-		{text: "Brak", value: "none"},
-		{text: "Vege", value: "Vege"},
+		{text: "Standard", value: "none"},
+		{text: "Wegetariańskie", value: "Vege"},
+		{text: "Wegańskie", value: "Vega"},
 	];
 	export default {
-		name: "Signup",
+		name: "Profile",
 		data() {
 			return {
 				user: {
@@ -54,14 +57,14 @@
 	}
 
 	.item-select {
-		border: 1px #6e6b5e solid;
+		border: 1px #6E6B5E solid;
 	}
 
 	.item {
 		padding: 0.5em;
 	}
 
-	.item-selected {
+	.item-selected, .item:active {
 		background: hsl(349, 65%, 52%);
 		color: hsl(50, 35%, 86%);
 	}

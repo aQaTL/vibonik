@@ -66,7 +66,7 @@ async fn main() -> Result<(), Error> {
 			.data(pool.clone())
 			.route("/echo", web::get().to(api::echo))
 			.route("/auth", web::post().to(api::auth))
-			.route("/signup", web::post().to(api::signup));
+			.route("/update_user", web::post().to(api::update_user));
 
 		let app = if cfg!(debug_assertions) {
 			app.service(
@@ -147,9 +147,10 @@ mod api {
 	}
 
 	#[derive(Serialize, Deserialize)]
+	#[serde(rename_all = "camelCase", tag = "authStatus")]
 	enum AuthStatus {
 		Success(db::User),
-		UserNotFound,
+		NewUser(db::User),
 		Fail,
 	}
 
@@ -174,18 +175,45 @@ mod api {
 			return HttpResponse::Ok().json(AuthStatus::Fail);
 		}
 
-		let db_user = web::block(move || {
-			use crate::schema::users::dsl::*;
-			let conn = pool.get().unwrap();
-			users
-				.filter(fb_id.eq(data.user_id))
-				.get_result::<db::User>(&conn)
-		})
-		.await;
+		let data = std::sync::Arc::new(data);
+		let db_user = {
+			let pool = pool.clone();
+			let data = data.clone();
+			web::block(move || {
+				use crate::schema::users::dsl::*;
+				users
+					.filter(fb_id.eq(&data.user_id))
+					.get_result::<db::User>(&pool.get().unwrap())
+			})
+			.await
+		};
 
+		let pool = pool.clone();
 		match db_user {
 			Ok(db_user) => ok_json(AuthStatus::Success(db_user)),
-			Err(BlockingError::Error(Error::NotFound)) => ok_json(AuthStatus::UserNotFound),
+			Err(BlockingError::Error(Error::NotFound)) => {
+				match web::block(move || {
+					use crate::schema::users::dsl::*;
+					let new_user = db::NewUser {
+						fb_id: &data.user_id,
+						access_token: Some(&data.access_token),
+						name: &user.name,
+						role: Some(db::Role::User),
+						..Default::default()
+					};
+					diesel::insert_into(users)
+						.values(&new_user)
+						.get_result::<db::User>(&pool.get().unwrap())
+				})
+				.await
+				{
+					Ok(db_user) => ok_json(AuthStatus::NewUser(db_user)),
+					Err(e) => {
+						error!("failed to create user: {}", e);
+						HttpResponse::InternalServerError().body("")
+					}
+				}
+			}
 			Err(e) => {
 				//TODO: rely on Result::Error responder for returning errors?
 				error!("failed to fetch user: {}", e);
@@ -196,7 +224,7 @@ mod api {
 
 	#[derive(Deserialize)]
 	#[serde(rename_all = "camelCase")]
-	pub struct SignupForm {
+	pub struct UserData {
 		#[serde(rename = "userID")]
 		user_id: String,
 		access_token: String,
@@ -204,7 +232,7 @@ mod api {
 		food_preferences: Option<String>,
 	}
 
-	pub async fn signup(Json(form): Json<SignupForm>, pool: Data<Pool>) -> impl Responder {
+	pub async fn update_user(Json(form): Json<UserData>, pool: Data<Pool>) -> impl Responder {
 		let insert = web::block(move || {
 			let conn = pool.get().unwrap();
 

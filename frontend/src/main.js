@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import VueRouter from 'vue-router'
-import Signup from "./components/Signup";
+import Profile from "./components/Profile";
 import Ticket from "./components/Ticket";
 import Home from "./components/Home";
 
@@ -17,7 +17,7 @@ const router = new VueRouter({
 	mode: "history",
 	routes: [
 		{path: "/", component: Home},
-		{path: "/signup", component: Signup},
+		{path: "/profile", component: Profile},
 		{path: "/ticket", component: Ticket},
 		{path: "/users", component: Users},
 	]

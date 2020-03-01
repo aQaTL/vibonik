@@ -16,7 +16,7 @@
 		</div>
 		<div id="navigation-bar">
 			<div class="nav-link">
-				<router-link to="/signup">Rejestracja</router-link>
+				<router-link to="/profile">Profil</router-link>
 			</div>
 			<div class="nav-link">
 				<router-link to="/">Główna</router-link>
@@ -112,12 +112,21 @@
 				});
 				switch (resp.status) {
 					case 200: {
-						let authStatus = await resp.json();
-						switch (authStatus) {
+						let respData = await resp.json();
+						switch (respData.authStatus) {
+							case "success":
+								console.log("Login successful: ", respData);
+								break;
+							case "newUser":
+								await this.$router.push("/profile");
+								console.log("New user: ", respData);
+								break;
+							case "fail":
+								console.log("Failed to auth");
+								break;
 							default:
-								console.log(`unknown authStatus: ${authStatus}`);
+								console.log(`unknown authStatus: `, respData);
 						}
-						console.log(`AuthStatus: ${authStatus}`);
 						break;
 					}
 					case 201:

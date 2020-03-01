@@ -11,6 +11,7 @@ use crate::schema::users;
 
 #[derive(Queryable, Insertable, Serialize, Deserialize, Default)]
 #[table_name = "users"]
+#[serde(rename_all = "camelCase")]
 pub struct User {
 	pub id: i32,
 	pub fb_id: String,
@@ -24,6 +25,23 @@ pub struct User {
 	pub birthday: Option<chrono::NaiveDate>,
 	pub gender: Option<String>,
 	pub food_preferences: Option<String>,
+	pub paid: i64,
+}
+
+#[derive(Insertable, Default)]
+#[table_name = "users"]
+pub struct NewUser<'a> {
+	pub fb_id: &'a str,
+	pub access_token: Option<&'a str>,
+	pub login: Option<&'a str>,
+	pub password_hash: Option<&'a str>,
+	pub role: Option<Role>,
+	pub name: &'a str,
+	pub pesel: Option<i64>,
+	pub email: Option<&'a str>,
+	pub birthday: Option<&'a chrono::NaiveDate>,
+	pub gender: Option<&'a str>,
+	pub food_preferences: Option<&'a str>,
 	pub paid: i64,
 }
 
