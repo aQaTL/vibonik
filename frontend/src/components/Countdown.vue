@@ -14,6 +14,7 @@
 		name: "Countdown",
 		data() {
 			return {
+				deadline: new Date(2020, 4, 21, 18, 0, 0, 0),
 				days: 0,
 				hours: 0,
 				minutes: 0,
@@ -21,10 +22,14 @@
 			};
 		},
 
-		mounted: function () {
-			let start = new Date(2020, 4, 21, 18, 0, 0, 0);
-			setInterval(() => {
-				let diff = start - new Date();
+		created: function () {
+			setInterval(this.updateTimer, 1000);
+			this.updateTimer();
+		},
+
+		methods: {
+			updateTimer() {
+				let diff = this.deadline - new Date();
 				let s = Math.floor(diff / 1000);
 
 				this.seconds = s % 60;
@@ -35,8 +40,9 @@
 				let h = Math.floor(m / 60);
 				this.hours = h % 24;
 				this.days = Math.floor(h / 24);
-			}, 1000);
+			}
 		},
+
 		filters: {
 			doubleDigit: function (value) {
 				return value.toString().padStart(2, "0");
@@ -54,7 +60,7 @@
 		font-family: "Staatliches", serif;
 		font-size: 30pt;
 		color: white;
-		text-shadow: 2px 2px 0 #bcbcbc, 4px 4px 0 #000000;
+		text-shadow: 2px 2px 0 #BCBCBC, 4px 4px 0 #000000;
 	}
 
 	h1 {
