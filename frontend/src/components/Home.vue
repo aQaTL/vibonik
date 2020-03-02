@@ -1,11 +1,11 @@
 <template>
-	<div>
+	<main>
 		<countdown></countdown>
-	</div>
+	</main>
 </template>
 
 <script>
-	import Countdown  from "./Countdown";
+	import Countdown from "./Countdown";
 
 	export default {
 		name: "Home",
@@ -17,5 +17,7 @@
 </script>
 
 <style scoped>
+	main {
 
+	}
 </style>

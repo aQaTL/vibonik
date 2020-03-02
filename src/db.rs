@@ -6,6 +6,7 @@ use diesel::sql_types::Text;
 use diesel::{deserialize, serialize};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
+use uuid::Uuid;
 
 use crate::schema::users;
 
@@ -16,6 +17,7 @@ pub struct User {
 	pub id: i32,
 	pub fb_id: String,
 	pub access_token: Option<String>,
+	pub uuid: Uuid,
 	pub login: Option<String>,
 	pub password_hash: Option<String>,
 	pub role: Option<Role>,
@@ -34,6 +36,7 @@ pub struct NewUser<'a> {
 	pub fb_id: &'a str,
 	pub access_token: Option<&'a str>,
 	pub login: Option<&'a str>,
+	pub uuid: Uuid,
 	pub password_hash: Option<&'a str>,
 	pub role: Option<Role>,
 	pub name: &'a str,

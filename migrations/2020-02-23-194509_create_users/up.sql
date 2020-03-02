@@ -4,6 +4,7 @@ create table users (
     id serial primary key,
     fb_id text unique not null,
     access_token text,
+    uuid uuid not null,
 
     login text,
     password_hash text,

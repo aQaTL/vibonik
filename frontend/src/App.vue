@@ -1,31 +1,39 @@
 <template>
 	<div id="app">
-		<div id="top-bar">
-			<div
-					ref="fbLoginButton"
-					class="fb-login-button"
-					data-width=""
-					data-size="large"
-					data-button-type="login_with"
-					data-auto-logout-link="true"
-					data-use-continue-as="false"
-					data-onlogin="document.facebookLoginCallback()"
-					data-onlogout="console.log('logging OUT!')"
-			>
-			</div>
-		</div>
+		<!--		<div id="top-bar">-->
+		<!--			<div-->
+		<!--					ref="fbLoginButton"-->
+		<!--					class="fb-login-button"-->
+		<!--					data-width=""-->
+		<!--					data-size="large"-->
+		<!--					data-button-type="login_with"-->
+		<!--					data-auto-logout-link="true"-->
+		<!--					data-use-continue-as="false"-->
+		<!--					data-onlogin="document.facebookLoginCallback()"-->
+		<!--					data-onlogout="console.log('logging OUT!')"-->
+		<!--			>-->
+		<!--			</div>-->
+		<!--		</div>-->
 		<div id="navigation-bar">
 			<div class="nav-link">
-				<router-link to="/profile">Profil</router-link>
+				<router-link to="/profile">
+					<font-awesome-icon icon="user"/>
+				</router-link>
 			</div>
 			<div class="nav-link">
-				<router-link to="/">Główna</router-link>
+				<router-link to="/">
+					<font-awesome-icon icon="home"/>
+				</router-link>
 			</div>
 			<div class="nav-link">
-				<router-link to="/ticket">Bilet</router-link>
+				<router-link to="/ticket">
+					<font-awesome-icon icon="info"/>
+				</router-link>
 			</div>
 			<div class="nav-link">
-				<router-link to="/Users">Użytkownicy</router-link>
+				<router-link to="/Users">
+					<font-awesome-icon icon="music"/>
+				</router-link>
 			</div>
 		</div>
 
@@ -115,11 +123,15 @@
 						let respData = await resp.json();
 						switch (respData.authStatus) {
 							case "success":
+								this.user = respData;
+								this.$store.commit('setUser', respData);
 								console.log("Login successful: ", respData);
 								break;
 							case "newUser":
-								await this.$router.push("/profile");
+								this.$store.commit('setUser', respData);
+								this.user = respData;
 								console.log("New user: ", respData);
+								await this.$router.push("/profile");
 								break;
 							case "fail":
 								console.log("Failed to auth");
@@ -168,15 +180,30 @@
 	$violet: $base0e;
 	$magenta: $base0f;
 
+
+	@font-face {
+
+		font-family: "Staatliches";
+		src: url("assets/fonts/Staatliches-Regular.ttf");
+	}
+
 	body {
-		background-color: $base00;
+		//background-color: $base00;
 		color: $base05;
 		margin: 0;
+
+		background-image: url("assets/imgs/background_m.jpg");
+		background-size: cover;
+		background-attachment: fixed;
 	}
 
 	a {
-		color: $base0a;
+		color: $base07;
 		text-decoration: none;
+	}
+
+	a:hover {
+		color: $orange;
 	}
 
 	#app {
@@ -199,19 +226,19 @@
 
 	#navigation-bar {
 		position: fixed;
-		bottom: 0;
+		top: 0;
 		left: 0;
 		width: 100vw;
 
 		display: flex;
 
-		justify-content: center;
-		background-color: $base01;
+		justify-content: space-evenly;
+
+		background-color: #111;
 	}
 
 	#navigation-bar > .nav-link {
 		padding: 1em;
-		border: 1px solid black;
 	}
 
 	.pulse {

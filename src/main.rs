@@ -125,6 +125,7 @@ mod api {
 	use diesel::result::Error;
 	use log::error;
 	use serde::{Deserialize, Serialize};
+	use uuid::Uuid;
 
 	#[derive(Deserialize)]
 	pub struct EchoParams {
@@ -198,6 +199,7 @@ mod api {
 						fb_id: &data.user_id,
 						access_token: Some(&data.access_token),
 						name: &user.name,
+						uuid: Uuid::new_v4(),
 						role: Some(db::Role::User),
 						..Default::default()
 					};
@@ -227,27 +229,27 @@ mod api {
 	pub struct UserData {
 		#[serde(rename = "userID")]
 		user_id: String,
-		access_token: String,
-		name: String,
+		uuid: Uuid,
+		//		access_token: String,
+		//		name: String,
 		food_preferences: Option<String>,
+	}
+
+	#[derive(Serialize, Deserialize)]
+	#[serde(rename_all = "camelCase", tag = "updateStatus")]
+	enum UpdateStatus {
+		Success,
+		Fail,
 	}
 
 	pub async fn update_user(Json(form): Json<UserData>, pool: Data<Pool>) -> impl Responder {
 		let insert = web::block(move || {
 			let conn = pool.get().unwrap();
 
-			let new_user = db::User {
-				fb_id: form.user_id,
-				access_token: Some(form.access_token),
-				name: form.name,
-				food_preferences: form.food_preferences,
-				role: Some(db::Role::User),
-
-				..Default::default()
-			};
-
-			use crate::schema::users::dsl::users;
-			diesel::insert_into(users).values(&new_user).execute(&conn)
+			use crate::schema::users::dsl::*;
+			diesel::update(users.filter(uuid.eq(form.uuid)))
+				.set((food_preferences.eq(form.food_preferences)))
+				.execute(&conn)
 		})
 		.await;
 
@@ -255,11 +257,11 @@ mod api {
 			Ok(_rows_affected) => (),
 			Err(err) => {
 				error!("failed to insert user: {}", err);
-				return HttpResponse::InternalServerError().body("");
+				return ok_json(UpdateStatus::Fail);
 			}
 		}
 
-		ok_json("")
+		ok_json(UpdateStatus::Success)
 	}
 
 	fn ok_json<T: Serialize>(value: T) -> actix_http::Response {
