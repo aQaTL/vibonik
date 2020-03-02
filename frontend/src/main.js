@@ -15,9 +15,9 @@ export let API = Vue.config.devtools ? "http://localhost:8081/api/" : "/api/";
 Vue.use(VueRouter);
 Vue.use(Vuex);
 
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faHome, faInfo, faUser, faMusic } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faHome, faInfo, faUser, faMusic } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 library.add(faHome, faInfo, faUser, faMusic);
 
