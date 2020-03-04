@@ -1,57 +1,97 @@
 <template>
 	<div id="app">
-		<!--		<div id="top-bar">-->
-		<!--			<div-->
-		<!--					ref="fbLoginButton"-->
-		<!--					class="fb-login-button"-->
-		<!--					data-width=""-->
-		<!--					data-size="large"-->
-		<!--					data-button-type="login_with"-->
-		<!--					data-auto-logout-link="true"-->
-		<!--					data-use-continue-as="false"-->
-		<!--					data-onlogin="document.facebookLoginCallback()"-->
-		<!--					data-onlogout="console.log('logging OUT!')"-->
-		<!--			>-->
-		<!--			</div>-->
-		<!--		</div>-->
-		<div id="navigation-bar">
-			<div class="nav-link">
-				<router-link to="/profile">
-					<font-awesome-icon icon="user"/>
-				</router-link>
-			</div>
-			<div class="nav-link">
+		<header>
+			<nav class="menu">
+
+				<div class="underline"></div>
+
+				<!-- Tutaj podpinać kolejne opcje pod menu (typu te ukryte), strona sama przeliczy ilość elementów w menu i dopasuje ich szerokość ( mounted -> adjustMenu(true)) -->
+
 				<router-link to="/">
-					<font-awesome-icon icon="home"/>
+					<div class="nav-link" @click="ul(0)" v-if="mobile">
+						<font-awesome-icon icon="home"/>
+					</div>
+					<div class="nav-link" @click="ul(0)" v-else>Strona Główna</div>
 				</router-link>
-			</div>
-			<div class="nav-link">
-				<router-link to="/ticket">
-					<font-awesome-icon icon="info"/>
+
+				<router-link to="/Info">
+					<div class="nav-link" @click="ul(1)" v-if="mobile">
+						<font-awesome-icon icon="info"/>
+					</div>
+					<div class="nav-link" @click="ul(1)" v-else>Informacje</div>
 				</router-link>
-			</div>
-			<div class="nav-link">
-				<router-link to="/Users">
-					<font-awesome-icon icon="music"/>
+
+
+				<!-- Tutaj testowo robiłem z v-ifem przełączanie ukrytych funkcji po kliknięciu w logowanie -->
+				<router-link to="/Music" v-if="test.zalogowano">
+					<div class="nav-link" @click="ul(2)" v-if="mobile">
+						<font-awesome-icon icon="music"/>
+					</div>
+					<div class="nav-link" @click="ul(2)" v-else>Piosenki</div>
 				</router-link>
-			</div>
-		</div>
+
+				<router-link to="/Ticket" v-if="test.zalogowano">
+					<div class="nav-link" @click="ul(3)" v-if="mobile">
+						<font-awesome-icon icon="ticket-alt"/>
+					</div>
+					<div class="nav-link" @click="ul(3)" v-else>Bilet</div>
+				</router-link>
+
+				<router-link to="/Profile" v-if="test.zalogowano">
+					<div class="nav-link" @click="ul(4)" v-if="mobile">
+						<font-awesome-icon icon="id-card"/>
+					</div>
+					<div class="nav-link" @click="ul(4)" v-else>Profil</div>
+				</router-link>
+
+				<router-link to="/Users" v-if="test.zalogowano">
+					<div class="nav-link" @click="ul(5)" v-if="mobile">
+						<font-awesome-icon icon="user"/>
+					</div>
+					<div class="nav-link" @click="ul(5)" v-else>Użytkownicy</div>
+				</router-link>
+
+				<!-- Pseudologowanie - usunąć -->
+				<router-link to="/" v-if="!test.zalogowano">
+					<div class="nav-link" @click="ul(0), pseudologowanie(true)" v-if="mobile">
+						<font-awesome-icon icon="key"/>
+					</div>
+					<div class="nav-link" @click="ul(0), pseudologowanie(true)" v-else>Zaloguj</div>
+				</router-link>
+
+				<router-link to="/" v-else>
+					<div class="nav-link" @click="ul(0), pseudologowanie(false)" v-if="mobile">
+						<font-awesome-icon icon="sign-out-alt"/>
+					</div>
+					<div class="nav-link" @click="ul(0), pseudologowanie(false)" v-else>Wyloguj</div>
+				</router-link>
+			</nav>
+
+			<div id="menuSeparator"></div>
+		</header>
 
 		<router-view></router-view>
 	</div>
 </template>
 
 <script>
+
 	import {API} from "./main";
 
 	export default {
 		name: 'App',
 		mounted() {
 			this.loadFacebook();
+			this.adjustMenu(true); // Dostosowanie menu do ilości opcji
+			this.adjustUnderline(window.location.pathname); // Dostosowanie efektu aktualnie wybranej podstrony
+			window.addEventListener('resize', this.handleWindowResize); // Wykrywanie zmiany rozmiaru strony
 		},
 
 		data() {
 			return {
+				siteWidth: document.documentElement.clientWidth,
+				mobile: false,
+
 				FB: null,
 				fbCredentials: {
 					accessToken: "",
@@ -59,10 +99,69 @@
 					signedRequest: "",
 					userID: "",
 				},
+
+				// Do pseudologowania - usunąć
+				test: {
+					zalogowano: false,
+				}
 			};
 		},
 
+		beforeDestroy: function () {
+			window.removeEventListener('resize', this.handleWindowResize)
+		},
+
 		methods: {
+			// Funkcja do pseudologowania - usunąć
+			pseudologowanie: function (type) {
+				this.test.zalogowano = type;
+				setTimeout(() => {
+					this.adjustMenu(true)
+				}, 0);
+			},
+
+
+			// Funkcja do "animacji" menu
+			ul: function (index) {
+				let underlines = document.querySelectorAll(".underline");
+				for (let i = 0; i < underlines.length; i++) underlines[i].style.transform = 'translate3d(' + index * 100 + '%,0,0)';
+			},
+
+			handleWindowResize(event) {
+				this.siteWidth = event.currentTarget.innerWidth;
+				this.adjustMenu(false);
+			},
+
+			// Funkcja do ustawienia poprawnego podświetlenia opcji 
+			adjustUnderline: function (subpage) {
+				let index = 0;
+
+				// Tutaj należy dopisywać kolejne przypadki dla każdej podstrony oraz ich index który jest przypisany w menu
+				switch (subpage) {
+					case "/":
+						index = 0;
+						break;
+					case "/Info":
+						index = 1;
+						break;
+					default:
+						index = 0;
+						break;
+				}
+				this.ul(index);
+			},
+
+			// Funkcja dopasowania menu
+			adjustMenu: function (isNecessaryMenuResize) {
+				if (isNecessaryMenuResize) {
+					let numberOfChildren = document.getElementsByClassName('menu')[0].getElementsByClassName('nav-link').length;
+					// console.log("Ilość elementów: " + numberOfChildren);
+					for (let i = 0; i < numberOfChildren; i++) document.getElementsByClassName('nav-link')[i].style.width = "calc(100%/" + numberOfChildren + ")";
+					document.getElementsByClassName('underline')[0].style.width = "calc(100%/" + numberOfChildren + ")";
+				}
+				this.siteWidth <= 1000 ? this.mobile = true : this.mobile = false;
+			},
+
 			loadFacebook: function () {
 				let js, fjs = document.getElementsByTagName("script")[0];
 				if (document.getElementById("facebook-jssdk") || window.fbAsyncInit !== undefined) {
@@ -182,19 +281,43 @@
 
 
 	@font-face {
-
 		font-family: "Staatliches";
 		src: url("assets/fonts/Staatliches-Regular.ttf");
+	}
+
+	@font-face {
+		font-family: "Poppins-Black";
+		src: url("assets/fonts/Poppins-Black.ttf");
+	}
+
+	@font-face {
+		font-family: "Buran-USSR";
+		src: url("assets/fonts/Buran-USSR.ttf");
 	}
 
 	body {
 		//background-color: $base00;
 		color: $base05;
 		margin: 0;
+		padding: 0;
 
-		background-image: url("assets/imgs/background_m.jpg");
+		background-image: url("assets/imgs/background.jpg");
 		background-size: cover;
 		background-attachment: fixed;
+	}
+
+	#app {
+		width: 100vw;
+		height: 100vh;
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-areas: "header" "main";
+
+		font-family: Avenir, Helvetica, Arial, sans-serif;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+
+		overflow: auto;
 	}
 
 	a {
@@ -202,66 +325,55 @@
 		text-decoration: none;
 	}
 
-	a:hover {
-		color: $orange;
+	// a:hover {
+	// 	color: $orange;
+	// }
+
+	/* MENU */
+
+	#menuSeparator {
+		height: 1px;
+		background: #353B48;
+		width: 100%;
+		border-bottom: 1px solid #353B48;
 	}
 
-	#app {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-
-		font-family: Avenir, Helvetica, Arial, sans-serif;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
+	nav {
+		overflow: hidden;
+		position: relative;
+		white-space: nowrap;
+		background: white;
+		padding: .5em 0;
+		box-shadow: 0 1em 2em rgba(black, .05);
+		font-family: "system-ui", sans-serif;
+		width: 100%;
 	}
 
-	#top-bar {
-		align-self: stretch;
-		text-align: center;
-		border-bottom: 1px solid $base00;
-		padding: 0.5em;
-		background-color: $base01;
-	}
-
-	#navigation-bar {
-		position: fixed;
-		top: 0;
+	.underline {
+		display: inline-block;
+		position: absolute;
+		z-index: 0;
+		bottom: 0;
 		left: 0;
-		width: 100vw;
-
-		display: flex;
-
-		justify-content: space-evenly;
-
-		background-color: #111;
+		height: 100%;
+		background: orange !important;
+		pointer-events: none;
+		mix-blend-mode: multiply;
+		transition: transform .5s ease-in-out;
 	}
 
-	#navigation-bar > .nav-link {
-		padding: 1em;
+	.nav-link {
+		display: inline-block;
+		z-index: 1;
+		padding: 1em 0;
+		text-align: center;
+		cursor: pointer;
 	}
 
-	.pulse {
-		box-shadow: 0 0 0 rgba(204, 169, 44, 0.4);
-		animation: pulse 2s infinite;
+	.menu {
+		font-weight: bold;
+		background: #111111;
+		color: white;
 	}
 
-	.pulse:hover {
-		animation: none;
-	}
-
-	@keyframes pulse {
-		0% {
-			-moz-box-shadow: 0 0 0 0 rgba(204, 169, 44, 0.4);
-			box-shadow: 0 0 0 0 rgba(204, 169, 44, 0.4);
-		}
-		70% {
-			-moz-box-shadow: 0 0 0 10px rgba(204, 169, 44, 0);
-			box-shadow: 0 0 0 10px rgba(204, 169, 44, 0);
-		}
-		100% {
-			-moz-box-shadow: 0 0 0 0 rgba(204, 169, 44, 0);
-			box-shadow: 0 0 0 0 rgba(204, 169, 44, 0);
-		}
-	}
 </style>

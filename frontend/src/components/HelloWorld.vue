@@ -10,7 +10,7 @@
 <script>
 	import {API} from "../main";
 
-  export default {
+	export default {
 		name: 'HelloWorld',
 		props: {
 			msg: String

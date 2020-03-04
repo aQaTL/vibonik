@@ -5,6 +5,8 @@ import VueRouter from 'vue-router'
 import Profile from "./components/Profile";
 import Ticket from "./components/Ticket";
 import Home from "./components/Home";
+import Info from "./components/Info";
+import Lightbox from "./components/Lightbox";
 
 const Users = () => import(/* webpackChunkName: "adminPanel" */ "./components/Users.vue");
 
@@ -16,12 +18,13 @@ Vue.use(VueRouter);
 Vue.use(Vuex);
 
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faInfo, faUser, faMusic } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faInfo, faUser, faMusic, faTicketAlt, faIdCard, faSignOutAlt, faKey } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-library.add(faHome, faInfo, faUser, faMusic);
+library.add(faHome, faInfo, faUser, faMusic, faTicketAlt, faIdCard, faSignOutAlt, faKey);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
+Vue.component('lightbox', Lightbox);
 
 const router = new VueRouter({
 	mode: "history",
@@ -30,6 +33,7 @@ const router = new VueRouter({
 		{path: "/profile", component: Profile},
 		{path: "/ticket", component: Ticket},
 		{path: "/users", component: Users},
+		{path: "/info", component: Info}
 	]
 });
 
