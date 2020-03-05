@@ -67,7 +67,7 @@
 				</router-link>
 			</nav>
 
-			<div id="menuSeparator"></div>
+			<div id="holder"></div>
 		</header>
 
 		<router-view></router-view>
@@ -279,6 +279,7 @@
 	$violet: $base0e;
 	$magenta: $base0f;
 
+	/* Czcionki */
 
 	@font-face {
 		font-family: "Staatliches";
@@ -295,8 +296,9 @@
 		src: url("assets/fonts/Buran-USSR.ttf");
 	}
 
+	/* Główne elementy */
+
 	body {
-		//background-color: $base00;
 		color: $base05;
 		margin: 0;
 		padding: 0;
@@ -320,43 +322,66 @@
 		overflow: auto;
 	}
 
-	a {
-		color: $base07;
-		text-decoration: none;
+	@media(max-width: 600px) {
+		#app {
+			overflow-x: hidden;
+		}
 	}
 
-	// a:hover {
-	// 	color: $orange;
-	// }
+	/* Scrollbar */
+
+	@media (min-width: 601px) {
+		::-webkit-scrollbar {
+			width: 10px;
+			background-color: #353B48;
+		}
+		::-webkit-scrollbar-thumb {
+			background-color: #FF9900;
+			background-image: -webkit-linear-gradient(45deg,
+					rgba(255, 255, 255, .2) 25%,
+					transparent 25%,
+					transparent 50%,
+					rgba(255, 255, 255, .2) 50%,
+					rgba(255, 255, 255, .2) 75%,
+					transparent 75%,
+					transparent)
+		}
+		::-webkit-scrollbar-track-piece:start {
+			margin-top: 70px;
+		}
+	}
 
 	/* MENU */
 
-	#menuSeparator {
-		height: 1px;
-		background: #353B48;
-		width: 100%;
-		border-bottom: 1px solid #353B48;
+	#holder {
+		height: 69px;
 	}
 
 	nav {
 		overflow: hidden;
-		position: relative;
 		white-space: nowrap;
 		background: white;
 		padding: .5em 0;
 		box-shadow: 0 1em 2em rgba(black, .05);
 		font-family: "system-ui", sans-serif;
 		width: 100%;
+		border-bottom: 2px solid #353B48;
+
+		/* Przyklejenie menu */
+		position: fixed;
+		top: 0;
+		z-index: 998;
+
 	}
 
 	.underline {
 		display: inline-block;
 		position: absolute;
-		z-index: 0;
+		z-index: 1;
 		bottom: 0;
 		left: 0;
 		height: 100%;
-		background: orange !important;
+		background: black;
 		pointer-events: none;
 		mix-blend-mode: multiply;
 		transition: transform .5s ease-in-out;
@@ -364,7 +389,7 @@
 
 	.nav-link {
 		display: inline-block;
-		z-index: 1;
+		z-index: 2;
 		padding: 1em 0;
 		text-align: center;
 		cursor: pointer;
@@ -375,5 +400,15 @@
 		background: #111111;
 		color: white;
 	}
+
+	.underline {
+		background: orange;
+	}
+
+	a {
+		color: white;
+		text-decoration: none;
+	}
+
 
 </style>
