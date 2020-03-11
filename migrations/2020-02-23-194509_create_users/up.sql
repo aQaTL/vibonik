@@ -2,9 +2,9 @@
 
 create table users (
     id serial primary key,
-    fb_id text unique not null,
+    fb_id text unique,
     access_token text,
-    uuid uuid not null,
+    uuid uuid unique not null,
 
     login text,
     password_hash text,

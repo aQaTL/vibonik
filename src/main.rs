@@ -121,3 +121,7 @@ pub async fn connect() -> Pool {
 		.build(manager)
 		.expect("Failed to create pool.")
 }
+
+pub fn hash_password(pass: &str) -> String {
+	format!("")
+}

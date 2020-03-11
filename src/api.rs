@@ -36,6 +36,7 @@ impl ResponseError for ApiError {
 	}
 
 	fn error_response(&self) -> HttpResponse {
+		error!("API Error: {:?}", self);
 		match self {
 			_ => HttpResponseBuilder::new(StatusCode::INTERNAL_SERVER_ERROR)
 				.json(failure::Fail::name(self)),
@@ -121,7 +122,7 @@ pub async fn auth(
 ) -> Result<HttpResponse, ApiError> {
 	match data {
 		AuthPayload::FacebookAuth(data) => facebook_auth(data, id, pool.get_ref()).await,
-		AuthPayload::FormAuth(data) => Ok(HttpResponse::NotImplemented().body("")),
+		AuthPayload::FormAuth(data) => form_auth(data, id, pool.get_ref()).await,
 	}
 }
 
@@ -167,7 +168,7 @@ async fn facebook_auth(
 			let db_user = web::block(move || {
 				use crate::schema::users::dsl::*;
 				let new_user = db::NewUser {
-					fb_id: &data.user_id,
+					fb_id: Some(&data.user_id),
 					access_token: Some(&data.access_token),
 					name: &user.name,
 					uuid: Uuid::new_v4(),
@@ -183,6 +184,23 @@ async fn facebook_auth(
 		}
 		Err(e) => Err(ApiError::InternalServerError(failure::err_msg(e))),
 	}
+}
+
+async fn form_auth(data: FormAuth, id: Identity, pool: &Pool) -> Result<HttpResponse, ApiError> {
+	let pool = pool.clone();
+
+	let user: db::User = web::block(move || {
+		use crate::schema::users::dsl::*;
+
+		users
+			.filter(login.eq(&data.login))
+			.filter(password_hash.eq(crate::hash_password(&data.password)))
+			.get_result::<db::User>(&pool.get().unwrap())
+	})
+	.await?;
+
+	id.remember(user.uuid.to_string());
+	Ok(AuthStatus::NewUser(user).into())
 }
 
 #[derive(Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 table! {
 	users (id) {
 		id -> Int4,
-		fb_id -> Text,
+		fb_id -> Nullable<Text>,
 		access_token -> Nullable<Text>,
 		uuid -> Uuid,
 		login -> Nullable<Text>,

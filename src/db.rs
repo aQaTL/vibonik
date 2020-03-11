@@ -15,7 +15,7 @@ use crate::schema::users;
 #[serde(rename_all = "camelCase")]
 pub struct User {
 	pub id: i32,
-	pub fb_id: String,
+	pub fb_id: Option<String>,
 	pub access_token: Option<String>,
 	pub uuid: Uuid,
 	pub login: Option<String>,
@@ -33,7 +33,7 @@ pub struct User {
 #[derive(Insertable, Default)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
-	pub fb_id: &'a str,
+	pub fb_id: Option<&'a str>,
 	pub access_token: Option<&'a str>,
 	pub login: Option<&'a str>,
 	pub uuid: Uuid,
