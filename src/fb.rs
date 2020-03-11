@@ -10,7 +10,7 @@ macro_rules! API {
 		"https://graph.facebook.com/v6.0"
 	};
 }
-const API: &'static str = API!();
+const API: &str = API!();
 
 #[derive(Deserialize)]
 pub enum Response {
