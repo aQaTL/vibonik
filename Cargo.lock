@@ -105,11 +105,26 @@ dependencies = [
  "pin-project",
  "rand 0.7.3",
  "regex",
+ "ring",
  "serde",
  "serde_json",
  "serde_urlencoded",
  "sha1",
  "slab",
+ "time",
+]
+
+[[package]]
+name = "actix-identity"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a379b0639c293292d71defb8cc1f94c87b7705c904adf044338ad392df77c7a"
+dependencies = [
+ "actix-service",
+ "actix-web",
+ "futures",
+ "serde",
+ "serde_json",
  "time",
 ]
 
@@ -1623,6 +1638,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ring"
+version = "0.16.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "741ba1704ae21999c00942f9f5944f801e977f54302af346b596287599ad1862"
+dependencies = [
+ "cc",
+ "lazy_static",
+ "libc",
+ "spin",
+ "untrusted",
+ "web-sys",
+ "winapi 0.3.8",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1768,6 +1798,12 @@ name = "sourcefile"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4bf77cb82ba8453b42b6ae1d692e4cdc92f9a47beaf89a847c8be83f4e328ad3"
+
+[[package]]
+name = "spin"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "syn"
@@ -1980,6 +2016,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 
 [[package]]
+name = "untrusted"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60369ef7a31de49bcb3f6ca728d4ba7300d9a1658f94c727d4cab8c8d9f4aece"
+
+[[package]]
 name = "url"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2056,6 +2098,7 @@ dependencies = [
  "actix-cors",
  "actix-files",
  "actix-http",
+ "actix-identity",
  "actix-rt",
  "actix-web",
  "chrono",
@@ -2064,6 +2107,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "failure",
+ "futures",
  "log",
  "reqwest",
  "serde",

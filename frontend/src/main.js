@@ -7,6 +7,7 @@ import Ticket from "./components/Ticket";
 import Home from "./components/Home";
 import Info from "./components/Info";
 import Lightbox from "./components/Lightbox";
+import Login from "./components/Login";
 
 const Users = () => import(/* webpackChunkName: "adminPanel" */ "./components/Users.vue");
 
@@ -17,9 +18,18 @@ export let API = Vue.config.devtools ? "http://localhost:8081/api/" : "/api/";
 Vue.use(VueRouter);
 Vue.use(Vuex);
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faInfo, faUser, faMusic, faTicketAlt, faIdCard, faSignOutAlt, faKey } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import {library} from '@fortawesome/fontawesome-svg-core';
+import {
+	faHome,
+	faInfo,
+	faUser,
+	faMusic,
+	faTicketAlt,
+	faIdCard,
+	faSignOutAlt,
+	faKey
+} from '@fortawesome/free-solid-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome';
 
 library.add(faHome, faInfo, faUser, faMusic, faTicketAlt, faIdCard, faSignOutAlt, faKey);
 
@@ -30,6 +40,7 @@ const router = new VueRouter({
 	mode: "history",
 	routes: [
 		{path: "/", component: Home},
+		{path: "/login", component: Login},
 		{path: "/profile", component: Profile},
 		{path: "/ticket", component: Ticket},
 		{path: "/users", component: Users},
@@ -58,10 +69,13 @@ const store = new Vuex.Store({
 		},
 	},
 	mutations: {
-		setUser (user) {
+		setUser(user) {
 			console.log("[Vuex] setting user", user);
 			this.state.user = user;
 		},
+	},
+	getters: {
+		loggedIn: state => state.user.uuid && state.user.uuid !== "" && true || false,
 	}
 });
 

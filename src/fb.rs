@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use failure::{Error, Fail};
+
+use failure::Fail;
 use log::*;
 use serde::Deserialize;
 use url::Url;
@@ -14,15 +15,18 @@ const API: &'static str = API!();
 #[derive(Deserialize)]
 pub enum Response {
 	#[serde(rename = "error")]
-	Error {
-		message: String,
-		#[serde(rename = "type")]
-		err_type: String,
-		code: u32,
-		error_subcode: u32,
-		fbtrace_id: String,
-	},
+	Error(Error),
 	User(User),
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Error {
+	pub message: String,
+	#[serde(rename = "type")]
+	pub err_type: String,
+	pub code: u32,
+	pub error_subcode: u32,
+	pub fbtrace_id: String,
 }
 
 #[derive(Deserialize)]
@@ -37,7 +41,7 @@ enum FbError {
 	General,
 }
 
-pub async fn me(access_token: &str) -> Result<Response, Error> {
+pub async fn me(access_token: &str) -> Result<Response, failure::Error> {
 	let url = Url::parse_with_params(concat!(API!(), "/me"), &[("access_token", &access_token)]);
 	let url = match url {
 		Ok(url) => url,

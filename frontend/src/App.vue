@@ -14,7 +14,7 @@
 					<div class="nav-link" @click="ul(0)" v-else>Strona Główna</div>
 				</router-link>
 
-				<router-link to="/Info">
+				<router-link to="/info">
 					<div class="nav-link" @click="ul(1)" v-if="mobile">
 						<font-awesome-icon icon="info"/>
 					</div>
@@ -23,28 +23,28 @@
 
 
 				<!-- Tutaj testowo robiłem z v-ifem przełączanie ukrytych funkcji po kliknięciu w logowanie -->
-				<router-link to="/Music" v-if="test.zalogowano">
+				<router-link to="/music" v-if="$store.getters.loggedIn">
 					<div class="nav-link" @click="ul(2)" v-if="mobile">
 						<font-awesome-icon icon="music"/>
 					</div>
 					<div class="nav-link" @click="ul(2)" v-else>Piosenki</div>
 				</router-link>
 
-				<router-link to="/Ticket" v-if="test.zalogowano">
+				<router-link to="/ticket" v-if="$store.getters.loggedIn">
 					<div class="nav-link" @click="ul(3)" v-if="mobile">
 						<font-awesome-icon icon="ticket-alt"/>
 					</div>
 					<div class="nav-link" @click="ul(3)" v-else>Bilet</div>
 				</router-link>
 
-				<router-link to="/Profile" v-if="test.zalogowano">
+				<router-link to="/profile" v-if="$store.getters.loggedIn">
 					<div class="nav-link" @click="ul(4)" v-if="mobile">
 						<font-awesome-icon icon="id-card"/>
 					</div>
 					<div class="nav-link" @click="ul(4)" v-else>Profil</div>
 				</router-link>
 
-				<router-link to="/Users" v-if="test.zalogowano">
+				<router-link to="/users" v-if="$store.getters.loggedIn">
 					<div class="nav-link" @click="ul(5)" v-if="mobile">
 						<font-awesome-icon icon="user"/>
 					</div>
@@ -52,18 +52,18 @@
 				</router-link>
 
 				<!-- Pseudologowanie - usunąć -->
-				<router-link to="/" v-if="!test.zalogowano">
-					<div class="nav-link" @click="ul(0), pseudologowanie(true)" v-if="mobile">
+				<router-link to="/login" v-if="!$store.getters.loggedIn">
+					<div class="nav-link" @click="ul(0)" v-if="mobile">
 						<font-awesome-icon icon="key"/>
 					</div>
-					<div class="nav-link" @click="ul(0), pseudologowanie(true)" v-else>Zaloguj</div>
+					<div class="nav-link" @click="ul(0)" v-else>Zaloguj</div>
 				</router-link>
 
 				<router-link to="/" v-else>
-					<div class="nav-link" @click="ul(0), pseudologowanie(false)" v-if="mobile">
+					<div class="nav-link" @click="ul(0)" v-if="mobile">
 						<font-awesome-icon icon="sign-out-alt"/>
 					</div>
-					<div class="nav-link" @click="ul(0), pseudologowanie(false)" v-else>Wyloguj</div>
+					<div class="nav-link" @click="ul(0)" v-else>Wyloguj</div>
 				</router-link>
 			</nav>
 
@@ -76,12 +76,9 @@
 
 <script>
 
-	import {API} from "./main";
-
 	export default {
 		name: 'App',
 		mounted() {
-			this.loadFacebook();
 			this.adjustMenu(true); // Dostosowanie menu do ilości opcji
 			this.adjustUnderline(window.location.pathname); // Dostosowanie efektu aktualnie wybranej podstrony
 			window.addEventListener('resize', this.handleWindowResize); // Wykrywanie zmiany rozmiaru strony
@@ -92,18 +89,6 @@
 				siteWidth: document.documentElement.clientWidth,
 				mobile: false,
 
-				FB: null,
-				fbCredentials: {
-					accessToken: "",
-					expiresIn: "",
-					signedRequest: "",
-					userID: "",
-				},
-
-				// Do pseudologowania - usunąć
-				test: {
-					zalogowano: false,
-				}
 			};
 		},
 
@@ -112,14 +97,6 @@
 		},
 
 		methods: {
-			// Funkcja do pseudologowania - usunąć
-			pseudologowanie: function (type) {
-				this.test.zalogowano = type;
-				setTimeout(() => {
-					this.adjustMenu(true)
-				}, 0);
-			},
-
 
 			// Funkcja do "animacji" menu
 			ul: function (index) {
@@ -162,92 +139,7 @@
 				this.siteWidth <= 1000 ? this.mobile = true : this.mobile = false;
 			},
 
-			loadFacebook: function () {
-				let js, fjs = document.getElementsByTagName("script")[0];
-				if (document.getElementById("facebook-jssdk") || window.fbAsyncInit !== undefined) {
-					return;
-				}
-				window.fbAsyncInit = () => {
-					/*eslint no-undef: "off"*/
-					FB.init({
-						appId: "196521161566506",
-						autoLogAppEvents: true,
-						xfbml: true,
-						version: 'v6.0'
-					});
-					FB.AppEvents.logPageView();
 
-					this.FB = FB;
-					this.facebookLoaded();
-				};
-
-				document.facebookLoginCallback = () => {
-					this.facebookLogIn()
-				};
-
-				js = document.createElement("script");
-				js.id = "facebook-jssdk";
-				js.crossOrigin = "anonymous";
-				js.src = "https://connect.facebook.net/pl_PL/sdk/debug.js";
-				fjs.parentNode.insertBefore(js, fjs);
-			},
-
-			facebookLogIn: async function () {
-				console.log("facebook: ", this.FB);
-
-				this.FB.getLoginStatus((response) => {
-					console.log("calling getLoginStatus");
-					if (response.status === "connected") {
-						this.fbCredentials = response.authResponse;
-						this.facebookLoginSuccessful();
-					}
-					console.log("Login response: ", response);
-				});
-			},
-
-			facebookLoginSuccessful: async function () {
-				this.FB.api("/me", (response) => {
-					console.log("USER INFO: ", response);
-				});
-
-				let resp = await fetch(API + "auth", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify(this.fbCredentials),
-				});
-				switch (resp.status) {
-					case 200: {
-						let respData = await resp.json();
-						switch (respData.authStatus) {
-							case "success":
-								this.user = respData;
-								this.$store.commit('setUser', respData);
-								console.log("Login successful: ", respData);
-								break;
-							case "newUser":
-								this.$store.commit('setUser', respData);
-								this.user = respData;
-								console.log("New user: ", respData);
-								await this.$router.push("/profile");
-								break;
-							case "fail":
-								console.log("Failed to auth");
-								break;
-							default:
-								console.log(`unknown authStatus: `, respData);
-						}
-						break;
-					}
-					case 201:
-					case 500:
-				}
-			},
-
-			facebookLoaded: async function () {
-				this.facebookLogIn();
-			},
 		}
 	}
 </script>
